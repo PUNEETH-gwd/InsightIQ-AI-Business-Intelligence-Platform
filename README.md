@@ -6,7 +6,6 @@ InsightIQ is an AI-powered Business Intelligence platform that helps organizatio
 
 Users can upload CSV/Excel files or connect directly to databases, generate dashboards, analyze trends, forecast future business performance, ask questions in natural language, and generate AI-powered reports.
 
-
 ## Features
 
 - User Authentication
@@ -18,7 +17,6 @@ Users can upload CSV/Excel files or connect directly to databases, generate dash
 - Machine Learning Predictions
 - Report Generation
 - Admin Dashboard
-
 
 ## Tech Stack
 
@@ -47,5 +45,6 @@ Users can upload CSV/Excel files or connect directly to databases, generate dash
 - Docker
 - Render
 
+## Project Status
 
-project:under development
+🚧 Under Development
