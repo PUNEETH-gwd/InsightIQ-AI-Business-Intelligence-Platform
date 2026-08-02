@@ -1,6 +1,10 @@
+from datetime import datetime, timedelta, timezone
+
+from jose import jwt
 from passlib.context import CryptContext
 
-# Configure bcrypt as the password hashing algorithm
+from app.core.config import settings
+
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
@@ -8,15 +12,27 @@ pwd_context = CryptContext(
 
 
 def hash_password(password: str) -> str:
-    """
-    Convert a plain-text password into a secure hash.
-    """
     return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Compare a plain-text password with its stored hash.
-    Returns True if they match.
-    """
     return pwd_context.verify(plain_password, hashed_password)
+
+
+def create_access_token(data: dict):
+    """
+    Create a JWT access token.
+    """
+    payload = data.copy()
+
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    payload.update({"exp": expire})
+
+    return jwt.encode(
+        payload,
+        settings.JWT_SECRET_KEY,
+        algorithm=settings.JWT_ALGORITHM
+    )
