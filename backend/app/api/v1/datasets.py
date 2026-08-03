@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-
+from fastapi.responses import FileResponse
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
@@ -64,10 +64,6 @@ def preview_dataset(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-
-
-
-    
     service = DatasetService(db)
 
     dataset = service.repository.get_by_id(dataset_id)
@@ -86,6 +82,224 @@ def preview_dataset(
 
     return service.preview_dataset(dataset)
 
+
+@router.get("/{dataset_id}/statistics")
+def dataset_statistics(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.dataset_statistics(dataset)
+
+
+@router.get("/{dataset_id}/missing-values")
+def missing_values(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.missing_values(dataset)
+
+@router.get("/{dataset_id}/duplicates")
+def duplicate_rows(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.duplicate_rows(dataset)
+
+
+@router.get("/{dataset_id}/data-types")
+def column_data_types(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.column_data_types(dataset)
+
+@router.get("/{dataset_id}/outliers")
+def outlier_detection(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.outlier_detection(dataset)
+
+@router.get("/{dataset_id}/quality-summary")
+def quality_summary(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.quality_summary(dataset)
+
+@router.post("/{dataset_id}/clean/remove-duplicates")
+def remove_duplicates(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.remove_duplicates(dataset)
+
+@router.post("/{dataset_id}/clean/fill-missing")
+def fill_missing_values(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.fill_missing_values(dataset)
+
+@router.post("/{dataset_id}/clean/drop-missing")
+def drop_missing_rows(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.drop_missing_rows(dataset)
 
 @router.get(
     "",
@@ -133,3 +347,31 @@ def delete_dataset(
     return {
         "message": "Dataset deleted successfully"
     }
+
+@router.get("/{dataset_id}/download")
+def download_dataset(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return FileResponse(
+        path=dataset.file_path,
+        filename=dataset.name,
+        media_type="application/octet-stream",
+    )
