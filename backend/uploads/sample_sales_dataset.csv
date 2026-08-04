@@ -1,0 +1,11 @@
+Product,Category,Sales,Quantity,Month
+Laptop,Electronics,25000,5,January
+Mouse,Electronics,5000,20,January
+Keyboard,Electronics,7000,15,February
+Monitor,Electronics,18000,6,March
+Printer,Office,12000,4,March
+Desk,Furniture,15000,3,April
+Chair,Furniture,9000,8,April
+Tablet,Electronics,22000,7,May
+Phone,Electronics,30000,10,June
+Scanner,Office,11000,5,June

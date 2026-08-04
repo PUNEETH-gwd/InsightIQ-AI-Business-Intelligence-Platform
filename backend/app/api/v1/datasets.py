@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi.responses import FileResponse
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
-
+from app.schemas.chart import ChartRequest
 from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.schemas.dataset import DatasetResponse
@@ -229,6 +229,57 @@ def quality_summary(
 
     return service.quality_summary(dataset)
 
+@router.get("/{dataset_id}/charts/bar")
+def get_bar_chart(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if not dataset:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized"
+        )
+
+    return service.bar_chart_data(dataset)
+
+@router.post("/{dataset_id}/charts/generate")
+def generate_chart(
+    dataset_id: str,
+    chart: ChartRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.generate_chart(dataset, chart)
+
+
+
 @router.post("/{dataset_id}/clean/remove-duplicates")
 def remove_duplicates(
     dataset_id: str,
@@ -375,3 +426,27 @@ def download_dataset(
         filename=dataset.name,
         media_type="application/octet-stream",
     )
+
+@router.get("/{dataset_id}/ai-insights")
+def ai_insights(
+    dataset_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    service = DatasetService(db)
+
+    dataset = service.get_dataset(dataset_id)
+
+    if dataset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Dataset not found"
+        )
+
+    if dataset.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return service.ai_insights(dataset)
