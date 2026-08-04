@@ -1,11 +1,21 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import AIInsights from "../components/ai/AIInsights";
 import Navbar from "../components/layout/Navbar";
 import UploadCard from "../components/dashboard/UploadCard";
 import DatasetCard from "../components/dashboard/DatasetCard";
 import PreviewTable from "../components/dashboard/PreviewTable";
 import QualityCard from "../components/dashboard/QualityCard";
 import StatsCard from "../components/dashboard/StatsCard";
+import DynamicChart from "../components/charts/DynamicChart";
+import ChartBuilder from "../components/charts/ChartBuilder";
+import {
+  Database,
+  Rows3,
+  TriangleAlert,
+  Copy,
+} from "lucide-react";
+
 
 function Dashboard() {
   const [datasets, setDatasets] = useState([]);
@@ -13,6 +23,12 @@ function Dashboard() {
   const [preview, setPreview] = useState(null);
   const [columns, setColumns] = useState([]);
   const [qualityReport, setQualityReport] = useState(null);
+  const [barChartData, setBarChartData] = useState([]);
+  const [chartType, setChartType] = useState("bar");
+  const [xAxis, setXAxis] = useState("");
+  const [yAxis, setYAxis] = useState("");
+  const [selectedDatasetId, setSelectedDatasetId] = useState(null);
+  const [aiInsights, setAiInsights] = useState(null);
 
   useEffect(() => {
     loadDatasets();
@@ -66,17 +82,35 @@ function Dashboard() {
   };
 
   const handleAnalyze = async (datasetId) => {
-    try {
-      const response = await api.get(
-        `/datasets/${datasetId}/quality-summary`
-      );
+    setSelectedDatasetId(datasetId);
+  try {
+    // Load preview (columns + rows)
+    const previewResponse = await api.get(
+      `/datasets/${datasetId}/preview`
+    );
 
-      setQualityReport(response.data);
-    } catch (error) {
-      console.error(error);
-      alert("Analysis failed.");
-    }
-  };
+    setColumns(previewResponse.data.columns);
+    setPreview(previewResponse.data.rows);
+
+    // Load quality report
+    const qualityResponse = await api.get(
+      `/datasets/${datasetId}/quality-summary`
+    );
+
+    setQualityReport(qualityResponse.data);
+
+    // Load chart data
+    const chartResponse = await api.get(
+      `/datasets/${datasetId}/charts/bar`
+    );
+
+    setBarChartData(chartResponse.data);
+
+  } catch (error) {
+    console.error(error);
+    alert("Analysis failed.");
+  }
+};
 
   const handleDelete = async (datasetId) => {
     const confirmDelete = window.confirm(
@@ -118,6 +152,40 @@ function Dashboard() {
   }
 };
 
+const generateChart = async () => {
+
+  if (!xAxis || !yAxis) {
+    alert("Please select X and Y axis.");
+    return;
+  }
+
+  try {
+
+  const datasetId = selectedDatasetId;
+
+    if (!datasetId) {
+      alert("No dataset selected.");
+      return;
+    }
+
+    const response = await api.post(
+      `/datasets/${datasetId}/charts/generate`,
+      {
+        chart_type: chartType,
+        x_axis: xAxis,
+        y_axis: yAxis,
+      }
+    );
+
+    setBarChartData(response.data);
+
+  } catch (error) {
+    console.error(error);
+    alert("Chart generation failed.");
+  }
+};
+
+
 const handleFillMissing = async (datasetId) => {
   try {
     const response = await api.post(
@@ -149,12 +217,48 @@ const handleDropMissing = async (datasetId) => {
     alert("Operation failed.");
   }
 };
+const handleDownload = async (datasetId) => {
+  try {
+    const response = await api.get(
+      `/datasets/${datasetId}/download`,
+      {
+        responseType: "blob",
+      }
+    );
 
-const handleDownload = (datasetId) => {
-  window.open(
-    `http://127.0.0.1:8000/api/v1/datasets/${datasetId}/download`,
-    "_blank"
-  );
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "cleaned_dataset.csv";
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+    alert("Download failed.");
+  }
+};
+
+const handleAIInsights = async (datasetId) => {
+  try {
+    const response = await api.get(
+      `/datasets/${datasetId}/ai-insights`
+    );
+
+    setAiInsights(response.data);
+
+  } catch (error) {
+    console.error(error);
+    alert("AI Insights failed.");
+  }
 };
 return (
   <>
@@ -172,46 +276,47 @@ return (
             setFile={setFile}
             handleUpload={handleUpload}
           />
-<p className="text-red-500">
-  Selected File: {file ? file.name : "No file selected"}
-</p>
 
 
-          <div className="grid grid-cols-2 gap-4">
+<div className="grid grid-cols-2 gap-4">
 
-            <StatsCard
-              title="Datasets"
-              value={datasets.length}
-            />
+  <StatsCard
+    title="Datasets"
+    value={datasets.length}
+    icon={<Database size={34} />}
+  />
 
-            <StatsCard
-              title="Rows"
-              value={
-                qualityReport
-                  ? qualityReport.statistics.rows
-                  : "-"
-              }
-            />
+  <StatsCard
+    title="Rows"
+    value={
+      qualityReport
+        ? qualityReport.statistics.rows
+        : "-"
+    }
+    icon={<Rows3 size={34} />}
+  />
 
-            <StatsCard
-              title="Missing"
-              value={
-                qualityReport
-                  ? qualityReport.missing_values.total_missing
-                  : "-"
-              }
-            />
+  <StatsCard
+    title="Missing"
+    value={
+      qualityReport
+        ? qualityReport.missing_values.total_missing
+        : "-"
+    }
+    icon={<TriangleAlert size={34} />}
+  />
 
-            <StatsCard
-              title="Duplicates"
-              value={
-                qualityReport
-                  ? qualityReport.duplicates.duplicate_rows
-                  : "-"
-              }
-            />
+  <StatsCard
+    title="Duplicates"
+    value={
+      qualityReport
+        ? qualityReport.duplicates.duplicate_rows
+        : "-"
+    }
+    icon={<Copy size={34} />}
+  />
 
-          </div>
+</div>
 
         </div>
 
@@ -223,72 +328,23 @@ return (
 {datasets.length === 0 ? (
   <p>No datasets uploaded.</p>
 ) : (
-  <ul className="space-y-4">
-    {datasets.map((dataset) => (
-      <li
-        key={dataset.id}
-        className="bg-white shadow rounded-lg p-4"
-      >
-        <h3 className="font-semibold mb-3">
-          📄 {dataset.name}
-        </h3>
-
-        <div className="flex flex-wrap gap-2">
-
-          <button
-            onClick={() => handlePreview(dataset.id)}
-            className="bg-blue-500 text-white px-3 py-2 rounded"
-          >
-            Preview
-          </button>
-
-          <button
-            onClick={() => handleAnalyze(dataset.id)}
-            className="bg-green-500 text-white px-3 py-2 rounded"
-          >
-            Analyze
-          </button>
-
-          <button
-            onClick={() => handleRemoveDuplicates(dataset.id)}
-            className="bg-yellow-500 text-white px-3 py-2 rounded"
-          >
-            Remove Duplicates
-          </button>
-
-          <button
-            onClick={() => handleFillMissing(dataset.id)}
-            className="bg-purple-500 text-white px-3 py-2 rounded"
-          >
-            Fill Missing
-          </button>
-
-          <button
-            onClick={() => handleDropMissing(dataset.id)}
-            className="bg-orange-500 text-white px-3 py-2 rounded"
-          >
-            Drop Missing
-          </button>
-
-          <button
-            onClick={() => handleDownload(dataset.id)}
-            className="bg-indigo-500 text-white px-3 py-2 rounded"
-          >
-            Download
-          </button>
-
-          <button
-            onClick={() => handleDelete(dataset.id)}
-            className="bg-red-500 text-white px-3 py-2 rounded"
-          >
-            Delete
-          </button>
-
-        </div>
-
-      </li>
-    ))}
-  </ul>
+ <div className="space-y-5">
+  {datasets.map((dataset) => (
+    <DatasetCard
+      key={dataset.id}
+      dataset={dataset}
+      onPreview={handlePreview}
+      onAnalyze={handleAnalyze}
+      onDownload={handleDownload}
+      onDelete={handleDelete}
+      onRemoveDuplicates={handleRemoveDuplicates}
+      onFillMissing={handleFillMissing}
+      onDropMissing={handleDropMissing}
+      onAIInsights={handleAIInsights}
+    />
+  ))}
+</div>
+  
 )}
 
 <PreviewTable
@@ -296,15 +352,28 @@ return (
   preview={preview}
 />
 
+
+<ChartBuilder
+  columns={columns}
+  chartType={chartType}
+  setChartType={setChartType}
+  xAxis={xAxis}
+  setXAxis={setXAxis}
+  yAxis={yAxis}
+  setYAxis={setYAxis}
+  generateChart={generateChart}
+/>
+<DynamicChart
+    chartType={chartType}
+    data={barChartData}
+/>
 <QualityCard
   report={qualityReport}
 />
-
+<AIInsights data={aiInsights} />
       </div>
     </div>
   </>
-);
-     
+);    
 }
-
 export default Dashboard;
