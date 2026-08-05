@@ -18,6 +18,7 @@ function DatasetCard({
   onFillMissing,
   onDropMissing,
   onAIInsights,
+  onAIReport,
 }) {
   return (
     <Card>
@@ -70,6 +71,10 @@ function DatasetCard({
 
         <Button onClick={() => onAIInsights(dataset.id)}>
   ✨ AI Insights
+</Button>
+
+<Button onClick={() => onAIReport(dataset.id)}>
+  🤖 AI Report
 </Button>
 
       </div>

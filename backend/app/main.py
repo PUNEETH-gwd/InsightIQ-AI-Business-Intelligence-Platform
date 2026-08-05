@@ -5,6 +5,7 @@ from app.core.database import engine, Base
 from app.models.user import User
 from app.models.dataset import Dataset
 from app.api.v1.datasets import router as dataset_router
+from app.api.v1 import ml
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,6 +26,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(dataset_router)
+app.include_router(ml.router)
 
 @app.get("/")
 def root():

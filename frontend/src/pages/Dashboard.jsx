@@ -9,6 +9,9 @@ import QualityCard from "../components/dashboard/QualityCard";
 import StatsCard from "../components/dashboard/StatsCard";
 import DynamicChart from "../components/charts/DynamicChart";
 import ChartBuilder from "../components/charts/ChartBuilder";
+import MLStudio from "../components/ml/MLStudio";
+import ModelResult from "../components/ml/ModelResult";
+import AIReport from "../components/ml/AIReport";
 import {
   Database,
   Rows3,
@@ -26,10 +29,13 @@ function Dashboard() {
   const [barChartData, setBarChartData] = useState([]);
   const [chartType, setChartType] = useState("bar");
   const [xAxis, setXAxis] = useState("");
+  const [aiReport, setAiReport] = useState(null);
   const [yAxis, setYAxis] = useState("");
   const [selectedDatasetId, setSelectedDatasetId] = useState(null);
   const [aiInsights, setAiInsights] = useState(null);
-
+  const [targetColumn, setTargetColumn] = useState("");
+  const [algorithm, setAlgorithm] = useState("Linear Regression");
+  const [modelResult, setModelResult] = useState(null);
   useEffect(() => {
     loadDatasets();
   }, []);
@@ -260,6 +266,53 @@ const handleAIInsights = async (datasetId) => {
     alert("AI Insights failed.");
   }
 };
+
+const trainModel = async () => {
+  if (!selectedDatasetId) {
+    alert("Please analyze a dataset first.");
+    return;
+  }
+
+  if (!targetColumn) {
+    alert("Please select a target column.");
+    return;
+  }
+
+  try {
+    const response = await api.post("/ml/train", {
+      dataset_id: selectedDatasetId,
+      target_column: targetColumn,
+      algorithm: algorithm,
+    });
+
+    setModelResult(response.data);
+
+    alert("Model trained successfully!");
+
+  } catch (error) {
+    console.error(error);
+    alert("Model training failed.");
+  }
+};
+const handleAIReport = async (datasetId) => {
+
+  if (!yAxis) {
+    alert("Please select a target column first.");
+    return;
+  }
+
+  const response = await api.get(
+    `/ml/${datasetId}/ai-report`,
+    {
+      params: {
+        target_column: yAxis,
+      },
+    }
+  );
+
+  setAiReport(response.data);
+};
+
 return (
   <>
     <Navbar />
@@ -341,6 +394,7 @@ return (
       onFillMissing={handleFillMissing}
       onDropMissing={handleDropMissing}
       onAIInsights={handleAIInsights}
+      onAIReport={handleAIReport}
     />
   ))}
 </div>
@@ -371,6 +425,17 @@ return (
   report={qualityReport}
 />
 <AIInsights data={aiInsights} />
+
+<MLStudio
+  columns={columns}
+  targetColumn={targetColumn}
+  setTargetColumn={setTargetColumn}
+  algorithm={algorithm}
+  setAlgorithm={setAlgorithm}
+  trainModel={trainModel}
+/>
+<ModelResult result={modelResult} />
+<AIReport report={aiReport} />
       </div>
     </div>
   </>
