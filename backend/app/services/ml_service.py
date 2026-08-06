@@ -1,6 +1,7 @@
 import os
 import joblib
 import pandas as pd
+import json
 
 from sklearn.model_selection import train_test_split
 
@@ -196,22 +197,53 @@ class MLService:
     )
 
       model_path = os.path.join(
-        "trained_models",
-        "best_model.pkl",
-    )
+          "trained_models",
+          "best_model.pkl",
+      )
 
       joblib.dump(
-        best_model,
-        model_path,
-    )
+          {
+              "model": best_model,
+              "columns": X.columns.tolist(),
+              "problem_type": problem_type,
+          },
+          model_path,
+      )
+
+      # Save AutoML results for PDF generation
+
+      os.makedirs(
+          "reports",
+          exist_ok=True,
+      )
+
+      report_path = os.path.join(
+          "reports",
+          "automl_result.json",
+      )
+
+      automl_report = {
+          "problem_type": problem_type,
+          "best_model": best_name,
+          "all_models": results,
+      }
+
+      with open(
+          report_path,
+          "w",
+      ) as file:
+          json.dump(
+              automl_report,
+              file,
+              indent=4,
+          )
 
       return {
-        "problem_type": problem_type,
-        "best_model": best_name,
-        "all_models": results,
-        "model_path": model_path,
-    }
-
+          "problem_type": problem_type,
+          "best_model": best_name,
+          "all_models": results,
+          "model_path": model_path,
+      }
 
 
     def generate_ai_report(
@@ -282,40 +314,55 @@ class MLService:
       report["suggestions"] = suggestions
 
       return report
-
+    
     def predict(
-    self,
-    model_path,
-    dataset_path,
+        self,
+        model_path,
+        dataset_path,
 ):
-     model = joblib.load(model_path)
+        saved = joblib.load(model_path)
 
-     df = pd.read_csv(dataset_path)
+        model = saved["model"]
+        feature_columns = saved["columns"]
 
-     predictions = model.predict(df)
+    # Keep original dataset
+        original_df = pd.read_csv(dataset_path)
 
-     df["Prediction"] = predictions
+    # Create encoded copy for prediction
+        df = pd.get_dummies(original_df)
 
-     output_dir = "predictions"
-
-     os.makedirs(
-        output_dir,
-        exist_ok=True,
+        df = df.reindex(
+        columns=feature_columns,
+        fill_value=0,
     )
 
-     output_path = os.path.join(
+        predictions = model.predict(df)
+
+    # Add predictions to original data
+        result_df = original_df.copy()
+        result_df["Prediction"] = predictions
+
+        output_dir = "predictions"
+        os.makedirs(output_dir, exist_ok=True)
+
+        output_path = os.path.join(
         output_dir,
         "predictions.csv",
     )
 
-     df.to_csv(
+        result_df.to_csv(
         output_path,
         index=False,
     )
 
-     return {
-        "rows": len(df),
+        preview = result_df.head(10).to_dict(
+        orient="records"
+    )
+
+        return {
+        "rows": len(result_df),
         "prediction_file": output_path,
+        "preview": preview,
     }
 
 

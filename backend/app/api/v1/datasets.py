@@ -1,14 +1,14 @@
-import os
-import shutil
-from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
-from app.schemas.chart import ChartRequest
+import pandas as pd
+import os
+import json
+
 from app.api.deps import get_current_user
 from app.core.database import get_db
-from app.schemas.dataset import DatasetResponse
 from app.services.dataset_service import DatasetService
+from app.services.pdf_service import PDFService
 
 router = APIRouter(
     prefix="/api/v1/datasets",

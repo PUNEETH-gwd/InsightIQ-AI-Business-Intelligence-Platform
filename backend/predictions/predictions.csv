@@ -1,0 +1,11 @@
+Product,Category,Quantity,Month,Prediction
+Laptop,Electronics,5,January,25000
+Mouse,Electronics,20,January,25000
+Keyboard,Electronics,15,February,7000
+Monitor,Electronics,6,March,18000
+Printer,Office,4,March,12000
+Desk,Furniture,3,April,15000
+Chair,Furniture,8,April,9000
+Tablet,Electronics,7,May,22000
+Phone,Electronics,10,June,11000
+Scanner,Office,5,June,11000
