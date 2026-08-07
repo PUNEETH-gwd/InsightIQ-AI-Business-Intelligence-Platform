@@ -312,6 +312,17 @@ class MLService:
     )
 
       report["suggestions"] = suggestions
+      os.makedirs("reports", exist_ok=True)
+
+      with open(
+    "reports/latest_report.json",
+    "w",
+      ) as f:
+        json.dump(
+        report,
+        f,
+        indent=4,
+    )
 
       return report
     

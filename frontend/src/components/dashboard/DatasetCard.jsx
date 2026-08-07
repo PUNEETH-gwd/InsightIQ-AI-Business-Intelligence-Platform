@@ -22,17 +22,25 @@ function DatasetCard({
 }) {
   return (
     <Card>
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h3 className="text-xl font-bold">
-            📄 {dataset.name}
-          </h3>
+     <div className="flex justify-between items-start mb-6">
 
-          <p className="text-gray-500 text-sm">
-            Uploaded Dataset
-          </p>
-        </div>
-      </div>
+  <div>
+
+    <h3 className="text-2xl font-bold text-gray-800">
+      📄 {dataset.name}
+    </h3>
+
+    <p className="text-gray-500 mt-1">
+      Uploaded Dataset
+    </p>
+
+  </div>
+
+  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+    Ready
+  </span>
+
+</div>
 
       <div className="flex flex-wrap gap-3">
 

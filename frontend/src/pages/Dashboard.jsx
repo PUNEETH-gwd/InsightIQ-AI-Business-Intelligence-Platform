@@ -36,9 +36,7 @@ function Dashboard() {
   const [targetColumn, setTargetColumn] = useState("");
   const [algorithm, setAlgorithm] = useState("Linear Regression");
   const [modelResult, setModelResult] = useState(null);
-  useEffect(() => {
-    loadDatasets();
-  }, []);
+ 
 
   const loadDatasets = async () => {
     try {
@@ -48,6 +46,9 @@ function Dashboard() {
       console.error(error);
     }
   };
+   useEffect(() => {
+    loadDatasets();
+  }, []);
 
   const handleUpload = async () => {
     if (!file) {
@@ -317,8 +318,19 @@ return (
   <>
     <Navbar />
 
-    <div className="min-h-screen bg-gray-100 p-8">
+   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-8">
       <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+
+  <h1 className="text-4xl font-bold text-gray-800">
+    👋 Welcome to InsightIQ
+  </h1>
+
+  <p className="text-gray-600 mt-2">
+    Upload datasets, analyze data, train AI models, generate predictions, and export professional reports.
+  </p>
+
+</div>
 
         {/* Upload + Statistics */}
 
@@ -374,9 +386,21 @@ return (
         </div>
 
         {/* Keep the rest of your dashboard below exactly as it is */}
-<h2 className="text-2xl font-bold mb-4">
-  My Datasets
-</h2>
+<div className="flex items-center justify-between mb-6">
+
+  <div>
+
+    <h2 className="text-3xl font-bold text-gray-800">
+      📂 My Datasets
+    </h2>
+
+    <p className="text-gray-500 mt-1">
+      Manage and analyze your uploaded datasets.
+    </p>
+
+  </div>
+
+</div>
 
 {datasets.length === 0 ? (
   <p>No datasets uploaded.</p>

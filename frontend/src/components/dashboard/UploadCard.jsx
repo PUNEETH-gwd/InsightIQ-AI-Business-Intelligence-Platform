@@ -2,7 +2,6 @@ import Card from "../ui/Card";
 import Button from "../ui/Button";
 
 function UploadCard({
-  file,
   setFile,
   handleUpload,
 }) {

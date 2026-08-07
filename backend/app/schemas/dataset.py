@@ -13,3 +13,9 @@ class DatasetResponse(BaseModel):
     uploaded_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ChartRequest(BaseModel):
+    chart_type: str
+    x_column: str
+    y_column: str | None = None
