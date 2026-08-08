@@ -1,5 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.services.assistant_service import AssistantService
+from app.database import get_db
 
 router = APIRouter(
     prefix="/assistant",
@@ -9,34 +13,19 @@ router = APIRouter(
 
 class ChatRequest(BaseModel):
     question: str
+    dataset_id: str
 
-
+    
 @router.post("/chat")
-def chat(request: ChatRequest):
+def chat(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+):
+    assistant_service = AssistantService(db)
 
-    question = request.question.lower()
+    answer = assistant_service.chat(
+        request.question,
+        request.dataset_id,
+    )
 
-    if "missing" in question:
-        answer = "Your dataset contains missing values. Check the Data Quality section."
-
-    elif "duplicate" in question:
-        answer = "Duplicate row information is available in the Data Quality report."
-
-    elif "model" in question:
-        answer = "The best AutoML model is shown in the AutoML Results section."
-
-    elif "prediction" in question:
-        answer = "Prediction results can be viewed in Prediction Studio."
-
-    elif "summary" in question:
-        answer = "Dataset summary is available in AI Insights."
-
-    else:
-        answer = (
-            "I can answer questions about your dataset, "
-            "AutoML, predictions and AI reports."
-        )
-
-    return {
-        "answer": answer
-    }
+    return answer

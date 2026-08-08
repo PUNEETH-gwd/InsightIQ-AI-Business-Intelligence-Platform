@@ -1,0 +1,18 @@
+{
+    "problem_type": "classification",
+    "best_model": "Random Forest",
+    "all_models": [
+        {
+            "algorithm": "Logistic Regression",
+            "accuracy": 0.0
+        },
+        {
+            "algorithm": "Decision Tree",
+            "accuracy": 0.0
+        },
+        {
+            "algorithm": "Random Forest",
+            "accuracy": 0.0
+        }
+    ]
+}

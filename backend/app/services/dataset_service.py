@@ -189,8 +189,8 @@ class DatasetService:
     def generate_chart(self, dataset, chart_request):
         df = self.load_dataframe(dataset)
 
-        x = chart_request.x_axis
-        y = chart_request.y_axis
+        x = chart_request.x_column
+        y = chart_request.y_column
 
         if x not in df.columns:
             raise ValueError("Invalid X Axis")

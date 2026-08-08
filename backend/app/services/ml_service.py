@@ -248,6 +248,7 @@ class MLService:
 
     def generate_ai_report(
     self,
+    dataset_id,
     dataset_name,
     target_column,
     problem_type,
@@ -314,10 +315,19 @@ class MLService:
       report["suggestions"] = suggestions
       os.makedirs("reports", exist_ok=True)
 
-      with open(
-    "reports/latest_report.json",
-    "w",
-      ) as f:
+      os.makedirs("reports", exist_ok=True)
+
+      report_path = os.path.join(
+    "reports",
+    f"{dataset_id}_report.json",
+)
+
+      with open(report_path, "w") as f:
+        json.dump(
+        report,
+        f,
+        indent=4,
+    )
         json.dump(
         report,
         f,

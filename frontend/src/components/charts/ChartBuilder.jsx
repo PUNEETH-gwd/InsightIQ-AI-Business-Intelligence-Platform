@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 
@@ -49,7 +50,7 @@ function ChartBuilder({
           >
             <option value="">Select</option>
 
-            {columns.map((column) => (
+           {(columns || []).map((column) => (
               <option key={column} value={column}>
                 {column}
               </option>
@@ -69,7 +70,7 @@ function ChartBuilder({
           >
             <option value="">Select</option>
 
-            {columns.map((column) => (
+            {(columns || []).map((column) => (
               <option key={column} value={column}>
                 {column}
               </option>
@@ -89,4 +90,4 @@ function ChartBuilder({
   );
 }
 
-export default ChartBuilder;
+export default memo(ChartBuilder);

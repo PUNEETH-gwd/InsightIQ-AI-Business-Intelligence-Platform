@@ -12,6 +12,7 @@ import ChartBuilder from "../components/charts/ChartBuilder";
 import MLStudio from "../components/ml/MLStudio";
 import ModelResult from "../components/ml/ModelResult";
 import AIReport from "../components/ml/AIReport";
+import InsightAssistant from "../components/ai/InsightAssistant";
 import {
   Database,
   Rows3,
@@ -76,29 +77,51 @@ function Dashboard() {
     }
   };
 
-  const handlePreview = async (datasetId) => {
-    try {
-      const response = await api.get(`/datasets/${datasetId}/preview`);
+const handlePreview = async (datasetId) => {
+  try {
+    const response = await api.get(
+      `/datasets/${datasetId}/preview`
+    );
 
-      setColumns(response.data.columns);
-      setPreview(response.data.rows);
-    } catch (error) {
-      console.error(error);
-      alert("Preview failed.");
-    }
-  };
+    const rows = response.data.rows || [];
+
+    const detectedColumns =
+      response.data.columns ||
+      (rows.length > 0 ? Object.keys(rows[0]) : []);
+
+    console.log("Preview response:", response.data);
+    console.log("Detected columns:", detectedColumns);
+
+    setColumns(detectedColumns);
+    setPreview(rows);
+
+  } catch (error) {
+    console.error(error);
+    alert("Preview failed.");
+  }
+};
 
   const handleAnalyze = async (datasetId) => {
     setSelectedDatasetId(datasetId);
   try {
     // Load preview (columns + rows)
-    const previewResponse = await api.get(
-      `/datasets/${datasetId}/preview`
-    );
+  const previewResponse = await api.get(
+  `/datasets/${datasetId}/preview`
+);
 
-    setColumns(previewResponse.data.columns);
-    setPreview(previewResponse.data.rows);
+const rows = previewResponse.data.rows || [];
 
+const detectedColumns =
+  Array.isArray(previewResponse.data.columns) &&
+  previewResponse.data.columns.length > 0
+    ? previewResponse.data.columns
+    : rows.length > 0
+      ? Object.keys(rows[0])
+      : [];
+console.log("Analysis columns:", detectedColumns);
+
+setColumns(detectedColumns);
+setPreview(rows);
     // Load quality report
     const qualityResponse = await api.get(
       `/datasets/${datasetId}/quality-summary`
@@ -158,7 +181,6 @@ function Dashboard() {
     alert("Operation failed.");
   }
 };
-
 const generateChart = async () => {
 
   if (!xAxis || !yAxis) {
@@ -168,7 +190,7 @@ const generateChart = async () => {
 
   try {
 
-  const datasetId = selectedDatasetId;
+    const datasetId = selectedDatasetId;
 
     if (!datasetId) {
       alert("No dataset selected.");
@@ -179,15 +201,17 @@ const generateChart = async () => {
       `/datasets/${datasetId}/charts/generate`,
       {
         chart_type: chartType,
-        x_axis: xAxis,
-        y_axis: yAxis,
+        x_column: xAxis,
+        y_column: yAxis,
       }
     );
+
+    console.log("Generated chart:", response.data);
 
     setBarChartData(response.data);
 
   } catch (error) {
-    console.error(error);
+    console.error("Chart generation error:", error);
     alert("Chart generation failed.");
   }
 };
@@ -421,15 +445,20 @@ return (
       onAIReport={handleAIReport}
     />
   ))}
+
+  
 </div>
+
   
 )}
+
 
 <PreviewTable
   columns={columns}
   preview={preview}
 />
 
+console.log("COLUMNS SENT TO CHART:", columns);
 
 <ChartBuilder
   columns={columns}
@@ -460,6 +489,11 @@ return (
 />
 <ModelResult result={modelResult} />
 <AIReport report={aiReport} />
+<div className="mt-10">
+  <InsightAssistant
+  selectedDatasetId={selectedDatasetId}
+   />
+</div>
       </div>
     </div>
   </>
